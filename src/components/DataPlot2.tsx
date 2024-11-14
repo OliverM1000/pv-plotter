@@ -1,7 +1,9 @@
 // @ts-ignore
 import CanvasJSReact from "@canvasjs/react-charts";
+import { useEffect, useState } from "react";
+import { Socket } from "socket.io-client";
 
-let CanvasJSChart = CanvasJSReact.CanvasJSChart;
+const CanvasJSChart = CanvasJSReact.CanvasJSChart;
 
 interface DataPoint {
   x: number;
@@ -11,11 +13,27 @@ interface DataPoint {
 interface Props {
   title: string;
   yTitle: string;
-  data: DataPoint[];
   lineColor: string;
+  maxLen: number;
+  tag: string;
+  socket: Socket;
 }
 
-function DataPlot({ title, yTitle, lineColor, data }: Props) {
+function DataPlot2({ title, yTitle, lineColor, maxLen, tag, socket }: Props) {
+  const [data, setData] = useState<DataPoint[]>([]);
+
+  useEffect(() => {
+    socket.on(tag, (x, y) => {
+      setData((data) => {
+        if (data.length > maxLen) {
+          return [...data.slice(1), { x: x, y: y }];
+        } else {
+          return [...data, { x: x, y: y }];
+        }
+      });
+    });
+  }, []);
+
   return (
     <div
       style={{
@@ -62,4 +80,4 @@ function DataPlot({ title, yTitle, lineColor, data }: Props) {
   );
 }
 
-export default DataPlot;
+export default DataPlot2;
